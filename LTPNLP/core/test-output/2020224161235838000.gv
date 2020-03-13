@@ -1,8 +1,0 @@
-digraph 2020224161235838000 {
-	"光绪" [fontname=FangSong]
-	"颐和园" [fontname=FangSong]
-	"光绪" -> "颐和园" [label="改称"]
-	"光绪" [fontname=FangSong]
-	"颐和园" [fontname=FangSong]
-	"光绪" -> "颐和园" [label="重建"]
-}

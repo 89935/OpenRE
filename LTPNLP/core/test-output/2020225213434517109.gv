@@ -1,8 +1,0 @@
-digraph 2020225213434517109 {
-	"中国音乐学院" [fontname=FangSong]
-	"出恭" [fontname=FangSong]
-	"中国音乐学院" -> "出恭" [label="搬" fontname=FangSong]
-	"音乐学院" [fontname=FangSong]
-	"出恭" [fontname=FangSong]
-	"音乐学院" -> "出恭" [label="搬" fontname=FangSong]
-}
