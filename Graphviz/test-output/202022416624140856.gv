@@ -1,0 +1,12 @@
+digraph 202022416624140856 {
+	a [label="恭王府" color=red fontname=FangSong]
+	a [label="恭王府" color=red fontname=FangSong]
+	e [label="南京" color=red fontname=FangSong]
+	a -> 3 [label="123abc" color=green]
+	b [color=blue]
+	c [label="北京" color=red fontname=FangSong]
+	d [color=blue]
+	a -> b [label=abc color=green]
+	c -> d [label=123 color=green]
+	b -> d [label=123 color=green]
+}

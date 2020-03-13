@@ -1,0 +1,5 @@
+digraph 2020225213346739520 {
+	"乾隆皇帝" [fontname=FangSong]
+	"皇后" [fontname=FangSong]
+	"乾隆皇帝" -> "皇后" [label="孝敬" fontname=FangSong]
+}

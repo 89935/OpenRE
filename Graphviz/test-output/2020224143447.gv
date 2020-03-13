@@ -1,0 +1,5 @@
+digraph 2020224143447 {
+	a [label="恭王府" color=red fontname=FangSong]
+	b [color=blue]
+	a -> b [label=abc color=green]
+}
