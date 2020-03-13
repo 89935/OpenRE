@@ -128,6 +128,7 @@ for rel in allRel4:
 print(allRel)
 print(set(allRel))
 print(len(set(allRel)))
+print("testGitHub")
 # getNumOfEntityPairAndRel('document-level-output\\1(loc-loc)+(loc-per)+(per-per)+\\filtered-per_per_triples2.json')
 
 
