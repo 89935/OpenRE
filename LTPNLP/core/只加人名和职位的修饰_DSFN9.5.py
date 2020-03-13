@@ -1,0 +1,1119 @@
+# -*- coding: utf-8 -*-
+# SPO针对实体处理了一下
+# 修改了flagCMP
+# import pynlpir
+from pyltp import Segmentor, Postagger, NamedEntityRecognizer, Parser
+import os
+
+from LTPNLP.core.GraphvizOutput import outputAsGraphForList
+from LTPNLP.core.mapEntity import mapEntity, getAttWord
+from entity_verb.entity_verb_new import entity_verb_new
+import sys
+import datetime
+
+sys.path.append("..")  # 跳出当前目录
+from LTPNLP.bean.word_unit import WordUnit
+from LTPNLP.bean.sentence_unit import SentenceUnit
+from LTPNLP.core.entity_combine import EntityCombine
+import json,re
+
+
+class DSFN:
+    """进行自然语言处理，包括分词，词性标注，命名实体识别，依存句法分析
+    Attributes：
+        default_user_dict_dir:str，用户自定义词典目录
+        default_model_dir：str，ltp模型文件目录
+    """
+
+    entity_verb_new = entity_verb_new()
+    all_entity = entity_verb_new.readAllEntity("../../entity_verb//entity_verb_result\\all_entity.json")
+    default_model_dir = 'D:\python-file\knowledge_extraction-master-tyz\\ltp_data_v3.4.0\\'  # LTP模型文件目录
+    location_entity = ["中和殿", "太庙", "人文地理", "亚运村", "九龙壁", "圆明园", "古典建筑", "庑殿顶", "天井", "无量殿", "慈宁宫", "三希堂", "居庸关", "延寿寺", "排云殿", "东桥", "圜丘", "南天门", "垂花门", "西六宫", "配楼", "柳荫街", "中国四大名园", "午门", "乾东五所", "建筑管理", "世界博物馆", "西什库教堂", "晚清", "万泉河", "东暖阁", "储秀宫", "西华门", "院落", "地安门东大街", "御路", "知鱼桥", "清宁宫", "金水河", "景山前街", "司马台长城", "景山公园", "乐寿堂", "东六宫", "延陵", "宜芸馆", "芍药居", "承乾宫", "琉璃瓦", "湘江", "敌楼", "安定门外大街", "三音石", "崇文门", "天坛路", "台基", "东城区", "外朝", "武备", "全国重点文物保护单位", "房山石", "静园", "香山", "中东", "坤宁宫", "彩画", "江南园林", "北河沿大街", "岳阳楼", "丽景轩", "巴黎圣母院", "钟表馆", "戏楼", "白银", "红海", "中原", "明长城", "神乐署", "瀛洲", "码头", "百度地图", "旋子彩画", "乾西五所", "天圆地方", "琉璃厂文化街", "广岛", "御沟", "井亭", "古柏林", "石坊", "北京故宫", "宝云阁", "甬道", "熙和门", "乾清门", "北京城", "暖温带", "沥粉贴金", "安定路", "北齐长城", "减柱造", "宅园", "清华园", "天坛东门站", "西苑", "土山", "温带季风气候", "宫古", "东直门", "美国国务卿", "北海", "中华梦石城", "东门站", "天坛公园", "江山", "谐趣园", "修宅", "苏堤", "玉泉", "牌坊", "蓟镇", "高速公路", "钟粹宫", "无梁殿", "政治家", "牌楼", "波斯", "西内", "老龙头", "阴阳石", "三神山", "丹陛桥", "中国第一历史档案馆", "建筑艺术", "四川", "护城河", "文华殿", "静宜园", "乐峰", "永和宫", "金砖", "清漪园", "安定门", "宫殿", "梵华楼", "龙井", "水街", "东华门", "歇山式顶", "斋宫", "渤海镇", "仁和", "白浮村", "建筑风格", "买卖街", "藻鉴堂", "寿安宫", "奉先殿", "后海", "宋", "承德避暑山庄", "前门站", "寿安山", "八达岭", "棂星门", "经幢", "泰山", "后三宫", "天桥商场", "维新派", "拙政园", "北京十六景", "南湖岛", "山寨", "东海", "寺庙", "图书馆", "西山", "延禧宫", "九土", "十七孔桥", "鹊桥", "石鼓", "样式雷", "礼乐", "圆石", "动物园", "西湖", "齐长城遗址", "京畿", "正脊", "神武门", "洛神赋图", "绿地面积", "暖阁", "多宝塔", "磨砖对缝", "湖心亭", "崇楼", "五谷丰登", "养性殿", "关山", "砖雕", "北境", "凤凰墩", "金殿", "永定路", "世界遗产", "古柏", "郡王府", "慕田峪", "皇舆全览图", "古典园林", "坐北朝南", "皇极殿", "皇家园林", "东四十条", "京西", "黄花镇", "通惠河", "宁寿宫", "旅游局", "大角楼", "昆明湖", "后溪", "东堤", "汉白玉石", "皇史宬", "湖心岛", "长春宫", "玉澜堂", "紫檀", "玉泉山", "玉山", "茶楼", "敌台", "乾清宫", "巴县", "藕香榭", "斗拱", "苏州街", "紫禁城", "颐和轩", "皇穹宇", "南方", "智慧海", "八小部洲", "拱券", "门楣", "太和殿", "銮仪卫", "法门寺地宫", "清音阁", "龙王庙", "城岛", "皇陵", "筒瓦", "天地坛", "张古", "建筑史", "武英殿", "北长街", "天坛", "云山", "大石桥", "北平", "宫殿建筑", "山东", "博物馆", "昆明池", "交道口南大街", "平流村", "聊城", "三大殿", "清晏舫", "墀头", "养心殿", "御道", "百花园", "翊坤宫", "神道", "落地罩", "渔村", "丹陛", "歇山顶", "畅音阁", "漱芳斋", "黄鹤楼", "柱础", "嘉乐堂", "庆长", "档案", "保定", "上海", "佛香阁", "望柱", "德和园", "天桥", "北京旅游网", "祈年殿", "颐和园", "攒尖顶", "香岩宗印之阁", "分界线", "大杂院", "交泰殿", "太和门", "南郊", "健翔桥", "瓮山", "勤政殿", "云南", "景仁宫", "小山村", "金水桥", "保和殿", "寄畅园", "珍妃井", "德和园大戏楼", "正房", "第一批全国重点文物保护单位", "三合院", "万寿山", "厉家菜", "玉峰塔", "藻井", "恭王府花园", "文昌阁", "景山", "前门东大街", "端门", "代王府", "万寿亭", "景阳宫", "东四环", "景明楼", "祈谷坛", "大戏楼", "安佑宫", "石舫", "流杯亭", "行宫", "法华寺", "圜丘坛", "正义路", "居庸关长城", "箭扣长城", "石牌坊", "回音壁", "和玺彩画", "二龙戏珠", "北四环", "玉龙", "广州", "盛京", "四合院", "曲尺", "谷仓", "永定门", "宝顶", "苏式彩画", "皇宫", "寿康宫"]
+
+
+    def __init__(self, model_dir=default_model_dir, all_entity=all_entity):
+        self.default_model_dir = model_dir
+        # 加载ltp模型
+        #
+        default_model_dir = 'D:\python-file\knowledge_extraction-master-tyz\\ltp_data_v3.4.0\\'  # LTP模型文件目录
+        self.segmentor_user = Segmentor()
+        user_dict = "..\\source\\user.txt"
+        segmentor_flag_user = self.segmentor_user.load_with_lexicon(os.path.join(default_model_dir, 'cws.model'), user_dict)
+        self.segmentor = Segmentor()
+        segmentor_flag = self.segmentor.load(os.path.join(default_model_dir, 'cws.model'))
+        # 词性标注模型
+        self.postagger = Postagger()
+        postag_flag = self.postagger.load(os.path.join(self.default_model_dir, 'pos.model'))
+        # 命名实体识别模型
+        self.recognizer = NamedEntityRecognizer()
+        ner_flag = self.recognizer.load(os.path.join(self.default_model_dir, 'ner.model'))
+        # 依存句法分析模型
+        self.parser = Parser()
+        parser_flag = self.parser.load(os.path.join(self.default_model_dir, 'parser.model'))
+
+        if segmentor_flag or postag_flag or ner_flag or parser_flag or segmentor_flag_user:  # 可能有错误
+            print('load model failed')
+
+    def segment(self, sentence, segmentor, entity_postag=dict()):
+        words = segmentor.segment(sentence)
+        lemmas = []
+        for lemma in words:
+            lemmas.append(lemma)
+        return lemmas
+
+    def getPostag(self):
+        return self.postagger
+
+    def postag(self, lemmas):
+        """
+        Parameters
+        ----------
+        lemmas : List，分词后的结果
+        entity_dict：Set，实体词典，处理具体的一则判决书的结构化文本时产生
+        Returns
+        -------
+        words:WordUnit List，包括分词与词性标注的结果
+        """
+        words = []
+        # 词性标注
+        postags = self.postagger.postag(lemmas)
+        for i in range(len(lemmas)):
+            # 存储分词与词性标记后的词单元WordUnit，编号从1开始
+            word = WordUnit(i + 1, lemmas[i], postags[i])
+            words.append(word)
+        # self.postagger.release() #释放
+        return words
+
+    def get_postag(self, word):
+        """获得单个词的词性标注
+        Args:
+            word:str,单词
+        Returns:
+            pos_tag:str，该单词的词性标注
+        """
+        pos_tag = self.postagger.postag([word])
+        return pos_tag[0]
+
+    def netag(self, words):
+        """
+        命名实体识别，并对分词与词性标注后的结果进行命名实体识别与合并
+        Parameters
+            words : WordUnit list，包括分词与词性标注结果
+        Returns
+            words_netag：WordUnit list，包含分词，词性标注与命名实体识别的结果
+        """
+        lemmas = []  # 存储分词后的结果
+        postags = []  # 存储词性标注结果
+        for word in words:
+            lemmas.append(word.lemma)
+            postags.append(word.postag)
+        # 命名实体识别
+        netags = self.recognizer.recognize(lemmas, postags)
+        words_netag = EntityCombine().combine(words, netags)
+        return words_netag
+
+    def parse(self, words):
+        """
+        对分词，词性标注与命名实体识别后的结果进行依存句法分析（命名实体识别可选）
+        Args:
+            words_netag：WordUnit list，包含分词，词性标注与命名实体识别结果
+        Returns
+            *：sentenceUnit 句子单元
+        """
+        lemmas = []  # 分词结果
+        postags = []  # 词性标注结果
+        for word in words:
+            lemmas.append(word.lemma)
+            postags.append(word.postag)
+        # 依存句法分析
+        arcs = self.parser.parse(lemmas, postags)
+        for i in range(len(arcs)):
+            words[i].head = arcs[i].head
+            words[i].dependency = arcs[i].relation
+        return SentenceUnit(words)
+
+    def close(self):
+        """
+        关闭与释放
+        """
+        # pynlpir.close()
+        self.postagger.release()
+        self.recognizer.release()
+        self.parser.release()
+
+    def splitSentence(self,text):
+        pattern = r'。|！|？|；|='
+        result_list = re.split(pattern, text)
+        result_list = list(filter(self.not_empty, result_list))
+        #    print(result_list)
+        return result_list
+
+    def splitSentenceByComma(self,text):
+        pattern = r'，'
+        result_list = re.split(pattern, text)
+        result_list = list(filter(self.not_empty, result_list))
+        final_list = []
+        for sentence in result_list:
+            if len(sentence) <= 40:
+                final_list.append(sentence)
+        return final_list
+
+    def not_empty(self,s):
+        return s and "".join(s.split())
+
+    def dsfn1_2_3_4COO(self, sentence, item1, item2,flagCOOATT):
+        allTripes = []
+
+        """
+        判断两个实体是否属于DSFN1的情况，并输出三元组
+        """
+        # print(item1.lemma)
+        # print(item2.lemma)
+        # print(flagCOOATT)
+
+        if flagCOOATT == False:
+            location_position_list = getAttWord()
+            # print(location_position_list)
+            if  self.dsfnConstraints3(sentence,item1,item2) and (item1.dependency == "ATT" ):
+                AttWord = item1.head_word
+                AttWordDict = dict()
+                AttWordStr = ""
+                while AttWord.ID < item2.ID:
+                    AttWordDict[AttWord.ID] = AttWord.lemma
+                    # print(AttWord.lemma)
+                    # AttWordStr += AttWord.lemma
+                    if (AttWord.dependency == "ATT" ):
+                        AttWord = AttWord.head_word
+                    else:
+                        break
+
+                if (AttWord.ID == item2.ID):
+                    flag = True
+                    while flag:
+                        len1 = len(AttWordDict)
+                        AttList = AttWordDict.keys()
+                        for id in range(item1.ID + 1, item2.ID):
+                            item = sentence.get_word_by_id(id)
+                            if item.head_word != None and item.head_word.ID in AttList and (item.dependency == "ATT" ):
+                                AttWordDict[item.ID] = item.lemma
+                                # print(item.lemma)
+                        if len1 == len(AttWordDict):
+                            flag = False
+                        else:
+                            flag = True
+                    AttWordDict = sorted(AttWordDict.items(), key=lambda item: item[0])
+                    AttWordStr = ""
+                    for i in AttWordDict:
+                        AttWordStr += i[1]
+                    # print("三元组：（" + item1.lemma + "，" + AttWordStr + "，" + item2.lemma + "）")
+
+                    if AttWordStr in location_position_list:
+                        allTripes.append([item1.lemma, AttWordStr, item2.lemma])
+                        # print(allTripes)
+                        # print("-------------------------")
+                    # else:
+                    #     for attWord in location_position_list:
+                    #         if attWord in AttWordStr:
+                    #             allTripes.append([item1.lemma, AttWordStr, item2.lemma])
+                    #             print(allTripes)
+                    #
+                    #             print("-------------------------")
+
+
+        """
+        考虑DSFN2的情况
+        """
+        if item1.dependency == "SBV" and item1.head_word.postag == "v":
+            pred1 = item1.head_word
+            predDict = dict()
+            predDict[pred1.ID] = pred1.lemma
+
+            if item2.dependency == "VOB" and item2.head_word.postag == "v":
+                pred2 = item2.head_word
+                predDict[pred2.ID] = pred2.lemma
+                if (len(predDict) == 1):
+                    objDict = dict()
+                    wordAfterOBJ = sentence.get_word_by_id(item2.ID + 1)
+                    """
+                    考虑“1961年中华人民共和国国务院公布故宫为全国重点文物保护单位”
+                    """
+                    if wordAfterOBJ!=None and wordAfterOBJ.lemma == '为' and wordAfterOBJ.postag == 'v' and wordAfterOBJ.dependency == 'COO' and wordAfterOBJ.head_word.ID == pred1.ID:
+                        predDict[wordAfterOBJ.ID] = wordAfterOBJ.lemma
+                        print("是不是走这一步了呢")
+                        for word in sentence.words:
+                            if word.dependency == "VOB" and word.head_word.ID == wordAfterOBJ.ID:
+                                objDict[word.ID] = word.lemma
+                        print(objDict)
+                        flagLoop = True
+                        while flagLoop == True:
+                            len1 = len(objDict)
+                            for word in sentence.words:
+                                if word.head_word != None and (word.dependency == "ATT" or word.dependency == "FOB") \
+                                        and word.head_word.ID in objDict:
+                                    objDict[word.ID] = word.lemma
+                                if len1 != len(objDict):
+                                    flagLoop = True
+                                else:
+                                    flagLoop = False
+                    PredWordStr = ""
+                    for i in predDict:
+                        PredWordStr += predDict[i]
+                    objectDict = sorted(objDict.items(), key=lambda item: item[0])
+                    objectStr = ""
+                    for objectItem in objectDict:
+                        objectStr += objectItem[1]
+                    # print("DSFN2三元组：（" + item1.lemma + "，" + PredWordStr + "，" + item2.lemma + "）")
+                    allTripes.append([item1.lemma, PredWordStr+""+objectStr, item2.lemma])
+                    """
+                    新加，为了考虑“习近平视察和访问上海”的情况
+                    """
+                if len(predDict) ==2:
+                    num = self.get_entity_num_between(pred1,pred2,sentence)
+                    flagSBV = True
+                    flagVOB = True
+                    for word in sentence.words:
+                        if word.dependency == "SBV" and word.head_word.ID == pred2.ID:
+                            flagSBV = False
+                        if (word.dependency == "VOB" and word.head_word.ID == pred1.ID)  or (word.dependency == "POB" \
+                                and word.head_word.dependency == "ADV" and word.head_word.head_word.ID == pred1.ID):
+                            flagVOB = False
+                    flagCMP= True
+                    if pred1!=None and pred1.dependency == "CMP" and pred1.head_word.ID == pred2.ID:
+                        flagCMP = False
+                    if pred2!=None and pred2.dependency == "CMP" and pred2.head_word.ID == pred1.ID:
+                        flagCMP = False
+                    flagCOO = True
+                    if pred1 != None and pred1.dependency == "COO" and pred1.head_word.ID == pred2.ID:
+                        flagCOO = False
+                    if pred2 != None and pred2.dependency == "COO" and pred2.head_word.ID == pred1.ID:
+                        flagCOO = False
+
+                    # print("pred1:"+pred1.lemma+",pred2:"+pred2.lemma+",num:"+str(num))
+                    if num == 0 :
+                        if flagCMP == False :
+                            if flagVOB == True and flagSBV == True:
+                                allTripes.append([item1.lemma, pred1.lemma + "" +pred2.lemma, item2.lemma])
+                        if flagCOO == False:
+                            if flagVOB == True and flagSBV == True:
+                                allTripes.append([item1.lemma, pred1.lemma + "" +pred2.lemma, item2.lemma])
+                        else:
+                            if flagVOB == True:
+                                allTripes.append([item1.lemma, pred1.lemma, item2.lemma])
+                            if flagSBV == True:
+                                allTripes.append([item1.lemma, pred2.lemma, item2.lemma])
+
+
+
+        """
+        DSFN3.0
+        """
+        pred = None
+        if item1.dependency == "SBV" and item1.head_word.postag == "v" and item2.dependency == "POB":
+            pred = item1.head_word
+            prep = item2.head_word
+        elif item1.dependency == "FOB" and item2.dependency == "POB":  # 考虑介词为“被”的情况，如 “小王被小明所陷害”
+            pred = item1.head_word
+            prep = item2.head_word
+            c = item1
+            item1 = item2
+            item2 = c
+        if pred != None and prep != None:
+            if prep.dependency == "ADV":
+                if prep.head_word.ID == pred.ID:
+                    pred2 = None
+                    object = None
+                    objectForPred2 = None
+                    flagVOB = False
+                    for i in range(pred.ID + 1, len(sentence.words) + 1):
+                        item = sentence.get_word_by_id(i)
+
+                        if item.dependency == "VOB" and item.head_word.ID == pred.ID:
+                            object = item
+                            flagVOB = True
+                            objectDict = dict()
+                            objectDict[object.ID] = object
+                            flagLoop = True
+                            while flagLoop == True:
+                                len1 = len(objectDict)
+                                for word in sentence.words:
+                                    if word.head_word != None and word.dependency == "ATT" and word.head_word.ID in objectDict:
+                                        objectDict[word.ID] = word
+                                    if len1 != len(objectDict):
+                                        flagLoop = True
+                                    else:
+                                        flagLoop = False
+                            objectDict = sorted(objectDict.items(), key=lambda item: item[0])
+                            objectStr = ""
+                            for objectItem in objectDict:
+                                objectStr += objectItem[1].lemma
+                            allTripes.append([item1.lemma, pred.lemma + "" + objectStr, item2.lemma])
+                    if flagVOB==False:
+                        for i in range(pred.ID + 1, len(sentence.words) + 1):
+                            item = sentence.get_word_by_id(i)
+
+                            if item.dependency == "CMP" and item.head_word.ID == pred.ID:
+                                object = item
+                                objectDict = dict()
+                                objectDict[object.ID] = object
+                                for word in sentence.words:
+                                    if word.head_word != None and (word.dependency == "VOB" or word.dependency == "POB") and word.head_word.ID == object.ID:
+                                        objectDict[word.ID] = word
+                                flagLoop = True
+                                while flagLoop == True:
+                                    len1 = len(objectDict)
+                                    for word in sentence.words:
+                                        if word.head_word != None and word.dependency == "ATT" and word.head_word.ID in objectDict:
+                                            objectDict[word.ID] = word
+                                        if len1 != len(objectDict):
+                                            flagLoop = True
+                                        else:
+                                            flagLoop = False
+                                objectDict = sorted(objectDict.items(), key=lambda item: item[0])
+                                objectStr = ""
+                                for objectItem in objectDict:
+                                    objectStr += objectItem[1].lemma
+                                allTripes.append([item1.lemma, pred.lemma + "" + objectStr, item2.lemma])
+
+                    if object == None:
+                        hasPOB = False
+                        for i in range(pred.ID + 1, len(sentence.words) + 1):
+                            item = sentence.get_word_by_id(i)
+                            if item.dependency == "POB" and item.head_word.dependency == "CMP" and item.head_word.head_word.ID == pred.ID:
+                                hasPOB = True
+                                allTripes.append([item1.lemma, pred.lemma + "" + item.head_word.lemma + "" + item.lemma, item2.lemma])
+                        # print("DSFN3三元组：（" + item1.lemma + "，" + pred.lemma + "，" + item2.lemma + "）")
+                        if hasPOB == False:
+                            allTripes.append([item1.lemma, pred.lemma , item2.lemma])
+        """
+        DSFN4
+        """
+        pred = None
+        prep = None
+        prep1 = None
+        pred2 = None
+        if item1.dependency == "SBV" and item2.dependency == "POB":
+            pred = item1.head_word
+            prep = item2.head_word
+            if prep.dependency == "CMP":
+                pred2 = prep.head_word
+                if pred2.ID == pred.ID:
+                    # print("DSFN4三元组：（" + item1.lemma + "，" + pred.lemma + "" + prep.lemma + "，" + item2.lemma + "）")
+                    allTripes.append([item1.lemma, pred.lemma + "" + prep.lemma, item2.lemma])
+                else :
+                    num = self.get_entity_num_between(pred, pred2, sentence)
+                    flagSBV = True
+                    flagVOB = True
+                    for word in sentence.words:
+                        if word.dependency == "SBV" and word.head_word.ID == pred2.ID:
+                            flagSBV = False
+                        if (word.dependency == "VOB" and word.head_word.ID == pred.ID) or (word.dependency == "POB" \
+                                and word.head_word.dependency == "ADV" and word.head_word.head_word.ID == pred.ID):
+                            flagVOB = False
+                    # print("pred1:"+pred1.lemma+",pred2:"+pred2.lemma+",num:"+str(num))
+                    if num == 0 :
+                        flag = True
+                        for word in sentence.words:
+                            if word.dependency == "CMP" and word.head_word.ID == pred.ID:
+                                prep1 = word
+                        if prep1 != None:
+                            if flagVOB == True:
+                                # print("DSFN4三元组：（" + item1.lemma + "，" + pred.lemma + "" + prep1.lemma + "，" + item2.lemma + "）")
+                                allTripes.append([item1.lemma, pred.lemma + "" + prep1.lemma, item2.lemma])
+                            # print("DSFN4三元组：（" + item1.lemma + "，" + pred2.lemma + "" + prep.lemma + "，" + item2.lemma + "）")
+                            if flagSBV == True:
+                                allTripes.append([item1.lemma, pred2.lemma + "" + prep.lemma, item2.lemma])
+                        else:
+                            if flagVOB == True:
+                                # print("DSFN4三元组：（" + item1.lemma + "，" + pred.lemma + "，" + item2.lemma + "）")
+                                allTripes.append([item1.lemma, pred.lemma, item2.lemma])
+                            if flagSBV == True:
+                            # print("DSFN4三元组：（" + item1.lemma + "，" + pred2.lemma + "" + prep.lemma + "，" + item2.lemma + "）")
+                                allTripes.append([item1.lemma, pred2.lemma + "" + prep.lemma, item2.lemma])
+
+        """
+        DSFN5
+        """
+        # self.dsfn5and6(rawSentence,sentence,item1,item2)
+        return allTripes
+
+    def get_entity_num_between(self,verb1,verb2,sentence):
+        """
+        获得两个动词之间的实体数量
+        Parameters
+        ----------
+        entity1 : WordUnit，动词1
+        entity2 : WordUnit，动词2
+        Returns：
+            num：int，两动词间的实体数量
+        """
+        if verb1.ID > verb2.ID:
+            c = verb1
+            verb1 = verb2
+            verb2 = c
+        num = 0
+        i = verb1.ID
+        while i < verb2.ID-1:
+            if self.is_entity(sentence.words[i]):
+                num +=1
+            i +=1
+        return num
+
+    def is_entity(self,entry):
+        """判断词单元是否是实体
+        Args：
+            entry：WordUnit，词单元
+        Returns：
+            *:bool，实体（True），非实体（False）
+        """
+        #候选实体词性列表
+        entity_postags = ['nh','ni','ns','nz','j','n','v','m']
+        # print(entry.lemma+" : "+entry.postag)
+        if entry.postag in entity_postags:
+            return True
+        else:
+            return False
+
+    def dsfn5COO(self, sentence, item1, item2):
+        if item1.dependency == "COO":
+            item1COO = item1.head_word
+            allTripes1 = self.dsfn1_2_3_4COO(sentence,item1COO,item2,True)
+            # print(allTripes1)
+            for tripe in allTripes1:
+                if tripe[0] == item1COO.lemma:
+                    tripe[0] = item1.lemma
+                elif tripe[2] == item1COO.lemma:
+                    tripe[2] = item1.lemma
+            return allTripes1
+            # print("allTripes1"+str(allTripes1))
+    def dsfn6COO(self,sentence,item1,item2):
+        if item2.dependency == "COO":
+            item2COO = item2.head_word
+            allTripes2 = self.dsfn1_2_3_4COO(sentence,item1,item2COO,True)
+            for tripe in allTripes2:
+                if tripe[2] == item2COO.lemma:
+                    tripe[2] = item2.lemma
+                elif tripe[0] == item2COO.lemma:
+                    tripe[0] = item2.lemma
+            return allTripes2
+    def dsfn5and6COO(self,sentence,item1,item2):
+        if item1.dependency == "COO":
+            item1COO = item1.head_word
+            if item2.dependency == "COO":
+                item2COO = item2.head_word
+                allTripe = self.dsfn1_2_3_4COO(sentence,item1COO,item2COO,True)
+                for tripe in allTripe:
+
+                    if tripe[0] == item1COO.lemma and tripe[2] == item2COO.lemma:
+                        tripe[0] = item1.lemma
+                        tripe[2] = item2.lemma
+                    if tripe[2] == item1COO.lemma and tripe[0] == item2COO.lemma:
+                        tripe[2] = item1.lemma
+                        tripe[0] = item2.lemma
+                return allTripe
+    def dsfnStart(self, rawSentence,segmentor, entity1, entity2,all_entity):
+        nounRelatedWithPosition = ['主席','总理','教授','校长']
+        resultList = []
+        lemmas = dsfn.segment(rawSentence,segmentor)
+        words = dsfn.postag(lemmas)
+        words_netag = dsfn.netag(words)
+        sentence = dsfn.parse(words_netag)
+        # print(sentence.to_string())
+        Rawitem1 = None
+        Rawitem2 = None
+        item1 = None
+        item2 = None
+        Rawitem1Index = -1
+        Rawitem2Index = -1
+        indexList = [-1,-1]
+        for item in sentence.words:
+            # print(str(item.ID) + " " +item.lemma )
+            if (item.lemma == entity1):
+                Rawitem1 = item
+            if (item.lemma == entity2):
+                Rawitem2 = item
+            if Rawitem1 != None and Rawitem2 != None and (Rawitem1.ID!=Rawitem1Index or Rawitem2.ID!=Rawitem2Index):
+                Rawitem1Index = Rawitem1.ID
+                Rawitem2Index = Rawitem2.ID
+                item1 = Rawitem1
+                item2 = Rawitem2
+                if item1.ID > item2.ID:
+                    c = item1
+                    item1 = item2
+                    item2 = c
+                itemCopy1 = item1
+                itemCopy2 = item2
+
+                if self.dsfnConstraints2(sentence,item1,item2,all_entity) == False:
+
+                    continue
+                allTripes = self.dsfnStartCOO2(sentence,item1,item2,False)
+                if allTripes !=None :
+                    for tripe in allTripes:
+                        if tripe[1]!="":
+                            resultList.append(tripe)
+                location_position_list = getAttWord()
+                flagItem1 = False
+                flagItem2 = False
+                if item1.dependency == "ATT" and item1.head_word.ID == item1.ID+1 and \
+                        item1.head_word.lemma in location_position_list:
+                    flagItem1 = True
+
+                if item2.dependency == "ATT" and item2.head_word.ID == item2.ID+1 and\
+                        item2.head_word.lemma in location_position_list:
+                    flagItem2 = True
+                allTripes2 = None
+                if flagItem1 == True and flagItem2 == True:
+                    allTripes2 = self.dsfnStartCOO2(sentence, item1.head_word, item2.head_word, True)
+
+                elif flagItem1 == True and flagItem2 == False:
+                    allTripes2 = self.dsfnStartCOO2(sentence, item1.head_word, item2, True)
+
+                elif flagItem1 == False and flagItem2 == True:
+                    allTripes2 = self.dsfnStartCOO2(sentence, item1, item2.head_word, True)
+
+                if allTripes2 !=None :
+                    for tripe in allTripes2:
+                        if tripe[1]!="":
+                            if tripe[0] == item1.head_word.lemma:
+                                tripe[0] = item1.lemma
+                            if tripe[2] == item2.head_word.lemma:
+                                tripe[2] = item2.lemma
+                            if tripe[2] == item1.head_word.lemma:
+                                tripe[2] = item1.lemma
+                            if tripe[0] == item2.head_word.lemma:
+                                tripe[0] = item2.lemma
+                            resultList.append(tripe)
+
+
+        if item1 == None or item2 == None:
+            return None
+        if len(resultList) > 0:
+            return resultList
+    def dsfnStartCOO2(self, sentence, item1, item2,flagCOOATT):
+        nounRelatedWithPosition = ['主席', '总理', '教授', '校长']
+        resultList = []
+        itemCopy1 = item1
+        itemCopy2 = item2
+        """
+        来解决ATT依赖的名词，如 李克强[ATT] <----- 总理[SBV]
+        """
+        # print(item1.lemma)
+        # print(item2.lemma)
+        allTripes = self.dsfn1_2_3_4COO(sentence, item1, item2,flagCOOATT)
+        if len(allTripes) == 0:
+            # print("11111111")
+            allTripes = self.dsfn5COO(sentence, item1, item2)
+            if allTripes == None or len(allTripes) == 0:
+                # print("2222222")
+                allTripes = self.dsfn6COO(sentence, item1, item2)
+                if allTripes == None or len(allTripes) == 0:
+                    # print("3333333")
+                    allTripes = self.dsfn5and6COO(sentence, item1, item2)
+                    # if allTripes == None or len(allTripes) == 0:
+                    #     print("44444444444")
+                    #     allTripes = self.dsfnAttCOO(sentence,item1,item2)
+        # print("第一次"+str(allTripes))
+        if allTripes != None and len(allTripes) != 0:
+            for tripe in allTripes:
+                resultList.append(tripe)
+        # print("第二次")
+        pred1 = None
+        subForCoo = None
+        for item in sentence.words:
+            if item.postag == "v" and item.dependency == "COO":
+                pred1 = item.head_word
+
+                for word in sentence.words:
+                    if word.dependency == "SBV" and word.head_word.ID == pred1.ID:
+                        for phrase in sentence.words:
+                            if phrase.dependency == "SBV" and phrase.head_word.ID == item.ID:
+                                subForCoo = phrase
+                        if subForCoo == None or (
+                                subForCoo != None and subForCoo.ID == word.ID):  # 处理动词COO的情况，必须要保证此并列动词没有额外主语。
+                            # 考虑到：习近平主席视察厦门，李克强总理访问香港
+                            word.head_word = item
+                            # print(sentence.to_string())
+                            # print(item1.lemma)
+                            # print(item2.lemma)
+                            allTripes = self.dsfn1_2_3_4COO(sentence, item1, item2,flagCOOATT)
+                            if len(allTripes) == 0:
+                                # print("11111111")
+                                allTripes = self.dsfn5COO(sentence, item1, item2)
+                                if allTripes == None or len(allTripes) == 0:
+                                    # print("2222222")
+                                    allTripes = self.dsfn6COO(sentence, item1, item2)
+                                    if allTripes == None or len(allTripes) == 0:
+                                        # print("3333333")
+                                        allTripes = self.dsfn5and6COO(sentence, item1, item2)
+                                        # if allTripes == None or len(allTripes) == 0:
+                                        #     allTripes = self.dsfnAttCOO(sentence,item1,item2)
+                            # print("第二次"+str(allTripes))
+                            if allTripes != None and len(allTripes) != 0:
+                                for tripe in allTripes:
+                                    resultList.append(tripe)
+        # print(np.array(set([tuple(t) for t in resultList])))
+        return resultList
+
+    def dsfnConstraints1(self,rawSentence,maxLength):
+        """
+        :param rawSentence: 原句子
+        :param maxLength: 句子的最大长度
+        :return: 小于maxLength的长度
+        """
+        newSentence = []
+
+        if len(rawSentence) <= maxLength:
+            newSentence.append(rawSentence)
+            return newSentence
+        else:
+            newSentence = self.splitSentenceByComma(rawSentence)
+            return newSentence
+
+    def dsfnConstraints2(self,sentence,item1,item2,allEntities):
+        countEntity = 0
+        countChar = 0
+        for index in range(item1.ID+1, item2.ID):
+            word = sentence.get_word_by_id(index)
+            countChar += len(word.lemma)
+            if word.lemma in allEntities:
+                countEntity +=1
+        # print(countEntity)
+        # print(countChar)
+        if countEntity > 3:
+            return False
+        elif countChar > 12:
+            # print(countChar)
+            return False
+        else:
+            return True
+
+    def dsfnConstraints3(self,sentence,item1,item2):
+        countChar = 0
+        for index in range(item1.ID+1, item2.ID):
+            word = sentence.get_word_by_id(index)
+            countChar += len(word.lemma)
+        if countChar > 5:
+            return False
+        else:
+            return True
+
+    def getSPO(self,sentence,segmentor):
+        location_position_list = getAttWord()
+        all_result = []
+        raw_sentence = []
+        RawSentence = sentence
+        lemmas = self.segment(sentence,segmentor)
+        words = self.postag(lemmas)
+        words_netag = self.netag(words)
+        sentence = self.parse(words_netag)
+        print(sentence.to_string())
+        for itemWord in sentence.words:
+            #来找到一个动词，这个动词要么是一句话的HED，要么与一句话的HED是COO的依存关系
+            if (itemWord.head_word == None and itemWord.postag == "v" ) or (itemWord.postag == "v" and
+                                                                  itemWord.dependency == "COO" and itemWord.head_word.head_word == None)\
+                     or (itemWord.postag == "v") :
+                relation_verb = itemWord   #将找到的这个动词，作为relation_verb
+                relationString = relation_verb.lemma
+                # print(relationString)
+                if itemWord.head_word==None:
+                    # print("1")
+                    verbId = itemWord.ID   # 关系动词的ID
+                    verbId2 = None
+                elif itemWord.head_word.head_word == None:
+                    # print("2")
+
+                    verbId = itemWord.ID   #该关系动词的ID
+                    if itemWord.dependency == "COO" or self.get_entity_num_between(itemWord,itemWord.head_word,sentence)==0:
+                        verbId2 = itemWord.head_word.ID  # 这句话的HED，用来找SUB
+                    else:
+                        verbId2 = None
+                else:
+                    # print("3")
+                    verbId = itemWord.ID   #该关系动词的ID
+                    if itemWord.dependency == "COO" or self.get_entity_num_between(itemWord,itemWord.head_word,sentence)==0:
+                        verbId2 = itemWord.head_word.ID  # 这句话的HED，用来找SUB
+                    else:
+                        verbId2 = None
+                O_dict = dict() #存储所有的Object
+                S_dict = dict() #存储所有的Subject
+                verb_dict = dict() #存储所有的verb，主要考虑的情况为：习近平主席在北京大学发表演讲
+                OBJ = None
+                SUB = None
+                DSFN3 = dict()
+                for item in sentence.words:
+                    if item.dependency == "SBV" and item.head_word.ID == verbId: #寻找这个动词的主语
+                        # if SUB == None or SUB.lemma != entity:
+                        SUB = item #找到主语
+                        S_dict[SUB.ID] = SUB.lemma #将主语加入到字典中
+
+                    if (item.dependency == "VOB" and item.head_word.ID == verbId and item.postag != "v"):
+                        # 找到这个动词的宾语，其中包括：直接宾语，介词宾语（该宾语依赖POB---->介词(词性为p)--ADV or CMP-->动词）
+                        OBJ = item
+                        O_dict[OBJ.ID] = OBJ.lemma
+                        relationString = relation_verb.lemma
+                        objDict = dict()
+                        wordAfterOBJ = sentence.get_word_by_id(OBJ.ID + 1)
+                        if wordAfterOBJ != None and wordAfterOBJ.lemma == '为' and wordAfterOBJ.postag == "v" and \
+                                wordAfterOBJ.dependency == 'COO' and wordAfterOBJ.head_word.ID == verbId:
+                            for word in sentence.words:
+                                if word.dependency == "VOB" and word.head_word.ID == wordAfterOBJ.ID:
+                                    objDict[word.ID] = word.lemma
+                            flagLoop = True
+                            while flagLoop == True:
+                                len1 = len(objDict)
+                                for word in sentence.words:
+                                    if word.head_word != None and (word.dependency == "ATT" or word.dependency == "FOB") \
+                                            and word.head_word.ID in objDict:
+                                        objDict[word.ID] = word.lemma
+                                    if len1 != len(objDict):
+                                        flagLoop = True
+                                    else:
+                                        flagLoop = False
+                            objDict = sorted(objDict.items(), key=lambda item: item[0])
+                            objectStr = ""
+                            for objItem in objDict:
+                                objectStr += objItem[1]
+
+                            verb_dict[OBJ.ID] = relationString + wordAfterOBJ.lemma + objectStr
+                        else:
+                            verb_dict[OBJ.ID] = relationString
+                    if (item.dependency == "POB" and item.head_word.postag == "p" and item.head_word.dependency == "CMP"
+                                and item.head_word.head_word.ID== verbId ) :
+                        # 找到这个动词的宾语，其中包括：直接宾语，介词宾语（该宾语依赖POB---->介词(词性为p)--ADV or CMP-->动词）
+                        OBJ = item
+                        O_dict[OBJ.ID] = OBJ.lemma
+                        relationString = relation_verb.lemma + "" + item.head_word.lemma
+                        verb_dict[OBJ.ID] = relationString
+
+                    if (item.dependency == "POB" and (item.head_word.postag == "p" or item.head_word.postag == "v" or item.head_word.postag == 'd')\
+                            and item.head_word.dependency == "ADV" and item.head_word.head_word.ID == verbId \
+                            and item.postag!='v'):
+                        # 找到这个动词的宾语，其中包括：直接宾语，介词宾语（该宾语依赖POB---->介词(词性为p)--ADV or CMP-->动词）
+                        OBJ = item
+                        O_dict[OBJ.ID] = OBJ.lemma
+                        verbObj = None
+                        DSFN3[OBJ.ID] = True
+                        objectDict = dict()
+                        relationString = relation_verb.lemma
+                        flagCMP = True
+                        for eachWord in sentence.words:
+                            if eachWord.dependency == "VOB" and eachWord.head_word.ID == relation_verb.ID:
+                                # relationString = relation_verb.lemma + "" + eachWord.lemma
+                                verbObj = eachWord
+                                objectDict[verbObj.ID] = verbObj
+                                flagCMP = False
+                                """
+                                考虑“颐和园经国家旅游局正式批准为国家5A级旅游景区”
+                                """
+                        if flagCMP == True:
+                            for eachWord in sentence.words:
+                                if eachWord.dependency == "CMP" and eachWord.head_word.ID == relation_verb.ID:
+                                    # relationString = relation_verb.lemma + "" + eachWord.lemma
+                                    relationString = relation_verb.lemma + "" + eachWord.lemma
+                                    verbCMP = eachWord
+                                    objectDict[verbCMP.ID] = verbCMP
+                                    for eachWord2 in sentence.words:
+                                        if (eachWord2.dependency == "VOB" or eachWord2.dependency == "POB") and eachWord2.head_word.ID == verbCMP.ID:
+                                            # relationString = relation_verb.lemma + "" + eachWord.lemma
+                                            verbObj = eachWord2
+                                            objectDict[verbObj.ID] = verbObj
+
+                        if verbObj != None:
+                            flagLoop = True
+                            while flagLoop == True:
+                                len1 = len(objectDict)
+                                for word in sentence.words:
+                                    if word.head_word != None and word.dependency == "ATT" and word.head_word.ID in objectDict:
+                                        objectDict[word.ID] = word
+                                if len(objectDict) != len1:
+                                    flagLoop = True
+                                else:
+                                    flagLoop = False
+                            objectDict = sorted(objectDict.items(), key=lambda item: item[0])
+                            objectStr = ""
+                            for objectItem in objectDict:
+                                objectStr += objectItem[1].lemma
+                            relationString = relation_verb.lemma + "" + objectStr
+
+                        else:
+                            for eachWord in sentence.words:
+                                if eachWord.dependency == "POB" and eachWord.head_word.dependency == "CMP" and \
+                                        eachWord.head_word.head_word.ID == relation_verb.ID:
+                                    relationString = relation_verb.lemma + "" + eachWord.head_word.lemma + "" + eachWord.lemma
+
+                        verb_dict[OBJ.ID] = relationString
+
+
+                if SUB == None:#如果没找到主语，那么就找与该动词并列的verbId2的主语
+                    for item in sentence.words:
+                        if item.dependency == "SBV" and item.head_word.ID == verbId2:
+                            # if SUB == None or SUB.lemma != entity:
+                            SUB = item
+                            S_dict[SUB.ID] = SUB.lemma
+                # print(verbId2)
+                if OBJ == None:
+                    verb_coo = None
+                    for item in sentence.words:
+                        if item.dependency == "COO" and item.head_word.ID == verbId and item.ID > verbId:
+                            verb_coo = item
+                            break
+                    flag = True
+                    if verb_coo != None and self.get_entity_num_between(relation_verb,verb_coo,sentence) == 0:
+
+                        for item in sentence.words:
+                            if item.dependency == "SBV" and item.head_word.ID == verb_coo.ID:
+                                flag = False
+                        if flag!= False:
+                            for item in sentence.words:
+                                if (item.dependency == "VOB" and item.head_word.ID == verb_coo.ID)\
+                                        or (item.dependency == "POB" and item.head_word.postag == "p" and item.head_word.dependency == "CMP"
+                                and item.head_word.head_word.ID== verb_coo.ID) or (item.dependency == "POB" and item.head_word.postag == "p"\
+                        and item.head_word.dependency == "ADV" and item.head_word.head_word.ID== verb_coo.ID):
+
+                                    OBJ = item
+                                    O_dict[OBJ.ID] = OBJ.lemma
+                # print(S_dict)
+                # print(verb_dict)
+                # print(O_dict)
+                SUB_COO = None
+                OBJ_COO = None
+                for item in sentence.words:
+                    if item.head_word != None:
+                        if SUB != None and item.dependency == "COO" and item.head_word.ID  in S_dict: #获得主语的COO
+                            SUB_COO = item
+                            S_dict[SUB_COO.ID] = SUB_COO.lemma
+                    if item.head_word != None and OBJ!=None:
+                        if item.dependency == "COO" and item.head_word.ID in O_dict: #获得宾语的COO
+                            OBJ_COO = item
+                            O_dict[OBJ_COO.ID] = OBJ_COO.lemma
+                S_new = []
+
+                for sub in S_dict:
+                    S_new.append(sub)
+
+                O_new = []
+                V_new = []
+                for obj in O_dict:
+                    if verb_dict!=None:
+                        if obj in verb_dict:
+                            relationString2  = verb_dict[obj]
+                        else:
+                            relationString2 = relation_verb.lemma
+                    else:
+                        relationString2 = relation_verb.lemma
+                    V_new.append(relationString2)
+                    O_new.append(obj)
+
+                for sub in S_new:
+                    for i in range(0,len(O_new)):
+
+                        obj = sentence.get_word_by_id(O_new[i]).lemma
+                        relationWord = V_new[i]
+                        if obj != "":
+                            object = sentence.get_word_by_id(O_new[i])
+                            subject = sentence.get_word_by_id(sub)
+                            subjectATT = ""
+                            objectATT = ""
+                            flagSubjectAtt = False
+                            flagObjjectAtt = False
+
+                            if subject.lemma in location_position_list:
+                                wordBeforeSUB = sentence.get_word_by_id(sub-1)
+                                if wordBeforeSUB!=None and wordBeforeSUB.dependency == "ATT" and wordBeforeSUB.head_word.ID == sub and self.hasEntity(wordBeforeSUB.lemma,self.all_entity):
+                                    subjectATT = wordBeforeSUB.lemma
+                                    flagSubjectAtt= True
+                                    print(subject.lemma+"----主语----"+wordBeforeSUB.lemma)
+
+                            if object.lemma in location_position_list:
+                                wordBeforeOBJ = sentence.get_word_by_id(O_new[i]-1)
+                                if wordBeforeOBJ!=None and wordBeforeOBJ.dependency == "ATT" and wordBeforeOBJ.head_word.ID == sub and self.hasEntity(wordBeforeOBJ.lemma,self.all_entity):
+                                    objectATT = wordBeforeOBJ.lemma
+                                    flagObjjectAtt = True
+                                    print(object.lemma+"---宾语-----"+wordBeforeOBJ.lemma)
+
+                            if flagObjjectAtt == True and flagSubjectAtt == True :
+                                all_result.append([subjectATT, relationWord, objectATT])
+                            elif flagSubjectAtt == True and flagObjjectAtt == False :
+                                all_result.append([subjectATT, relationWord, obj])
+                            elif flagSubjectAtt == False and flagObjjectAtt == True:
+                                all_result.append([subject.lemma, relationWord, objectATT])
+                            elif flagSubjectAtt == False and flagObjjectAtt == False:
+                                all_result.append([subject.lemma, relationWord, obj])
+
+
+                            raw_sentence.append(RawSentence)
+
+        return all_result,raw_sentence
+
+    def hasEntity(self,word,allEntity):
+        for entity in allEntity:
+            if entity in word:
+                # print(entity)
+                return True
+        return False
+
+    def PostProcessSPO(self,rawSentence,allTripes,allEntity):
+        output_list = []
+        for i in range(0,len(allTripes)):
+            tripe = allTripes[i]
+            sub = tripe[0]
+            obj = tripe[2]
+            # print(sub)
+            # print(obj)
+            if self.hasEntity(sub,allEntity) and self.hasEntity(obj,allEntity):
+                # print(sub)
+                # print(obj)
+                output_list.append(tripe)
+        return output_list
+
+
+
+"""
+考虑到一句话越长，则LTP的效果越不好
+"""
+if __name__ == '__main__':
+    dsfn = DSFN()
+
+    # 分词测试
+    print('***' + '分词测试' + '***')
+    allSentence = []
+
+    f = open('D:\python-file\北京市旅游知识图谱\\verb-entity\\bj_travel\\' + "5A_北京故宫博物院.txt"
+             , 'r', encoding='utf-8')
+    file = f.read()
+    #    print(file)
+    json_file = json.loads(file)  # 转化为json格式
+    text = json_file.get("text")  # 读取text
+    sentence_list = dsfn.splitSentence(text)  # 将text分为句子列表
+    # print(sentence_list)
+
+    f = open('..\\..\\entity_verb\\entity_verb_result\\' + "all_entity.json"
+             , 'r', encoding='utf-8')
+    file = f.read()
+    all_entity = json.loads(file)['all_entity']
+    new_sentence = []
+    # sentence_list = ["和珅因贪污罪于嘉庆年间被抄家处死后",
+    #                  "嘉庆皇帝遂将这座宅第转赐给他的小弟弟庆郡王永璘"]
+    sentence_list = [
+                     "1961年中华人民共和国国务院公布故宫为全国重点文物保护单位"]
+    # sentence_list = ["保和殿建成于永乐十八年（1420年），从谨身殿",
+    #                  "英国前首相梅杰，美国前总统克林顿都曾在慕田峪长城游览","清宫卤簿仪仗展：设在太和门西庑房，位于太和门广场西侧，展示清宫卤簿和仪仗用具"]
+    # sentence_list = ["康熙时期对新疆只实测到哈密以西的乌勒图布拉克",
+    #     "刘病己于平元元年七月即皇帝位，更名刘询",
+    #     "祖达尔哈齐以贸易寓居开原，继迁抚顺，遂家焉",
+    #     "吴佩孚曾因冯玉祥倒戈",
+    #     "厉善麟的祖父厉子嘉，在清朝同治和光绪年间，任内务府都统，深受慈禧信任",
+    #     "2005年1月北京市决定将地处朝阳区东四环原准备到土地市场上进行交易的学校",
+    #                  "德国总统高克访问上海，并在同济大学发表演讲", "乔丹是美国职业篮球运动员，出生在纽约", "托马斯在肯德基吃早餐",
+    #                  "牙买加运动员博尔特击败了美国选手加特林，在里约奥运会再次夺得金牌","哈德森出生在伦敦的郊区汉普斯特德",
+    #                  "哈德森在伦敦的郊区汉普斯特德出生","习近平对埃及进行国事访问"]
+    # all_entity = ['首脑','慕田峪长城','英国','梅杰','美国','克林顿','慕田峪长城','保和殿','永乐十八年','谨身殿','刘询','祖达尔哈齐','开原','抚顺','吴佩孚','冯玉祥','厉子嘉','光绪','北京市','东四环','埃及','习近平','哈德森','伦敦','汉普斯特德','德国', '高克', '上海', '同济大学', "乔丹", "运动员", "纽约", "托马斯", "肯德基", "牙买加", "博尔特", "美国", "加特林", "里约奥运会", ]
+
+    count = 0
+    allTripesForGraph = []
+    noBlankInSentence = []
+    for sentence in sentence_list:
+        if " " in sentence:
+            splitSentence = sentence.split(" ")
+            for eachSentence in splitSentence:
+                if len(eachSentence)!=0:
+                    noBlankInSentence.append(eachSentence)
+        else:
+            noBlankInSentence.append(sentence)
+    for sentence in noBlankInSentence:
+
+        sentenceListConstraint1 = dsfn.dsfnConstraints1(sentence,40)
+        for sentenceConstraint1 in sentenceListConstraint1:
+            # print(sentenceConstraint1)
+            final_result_tripe = []
+
+            b = sentenceConstraint1.split()
+            sentenceConstraint1 = "".join(b)
+            # print(dsfn.dsfnStart(sentenceConstraint1, "颐和园", "万寿山", all_entity))
+            for index1 in range(0, len(all_entity)):
+                if all_entity[index1] not in sentenceConstraint1:
+                    continue
+                for index2 in range(index1 + 1, len(all_entity)):
+                    if all_entity[index2] not in sentenceConstraint1:
+                        continue
+                    # print(all_entity[index1])
+                    # print(all_entity[index2])
+                    # print("-------------------------")
+                    tripesDSFNUser = dsfn.dsfnStart(sentenceConstraint1,dsfn.segmentor_user, all_entity[index1], all_entity[index2],all_entity)
+                    # tripesDSFNNo = dsfn.dsfnStart(sentenceConstraint1,dsfn.segmentor, all_entity[index1], all_entity[index2],all_entity)
+                    # print("----------------------")
+                    # print(all_entity[index1])
+                    # print(all_entity[index2])
+                    # print(tripesDSFNUser)
+                    # print("-----------------------------------------")
+                    # print(tripesDSFNNo)
+                    if tripesDSFNUser != None and len(tripesDSFNUser)!= 0:
+                        # print(tripes)
+                        result_tripe = []
+                        for tripe in tripesDSFNUser:
+                            result_tripe.append(tripe[0])
+                            result_tripe.append(tripe[1])
+                            result_tripe.append(tripe[2])
+                            final_result_tripe.append(tripe)
+
+                    # if tripesDSFNNo != None and len(tripesDSFNNo)!= 0:
+                    #     # print(tripes)
+                    #     result_tripe = []
+                    #     for tripe in tripesDSFNNo:
+                    #         result_tripe.append(tripe[0])
+                    #         result_tripe.append(tripe[1])
+                    #         result_tripe.append(tripe[2])
+                    #         final_result_tripe.append(tripe)
+            allTripes_user, raw_sentence = dsfn.getSPO(sentenceConstraint1,dsfn.segmentor_user)
+            # allTripes_no_user, raw_sentence = dsfn.getSPO(sentenceConstraint1, dsfn.segmentor)
+            # print("SPO产生的结果"+str(allTripes))
+            PostTripes_user = dsfn.PostProcessSPO(raw_sentence, allTripes_user, all_entity)
+            if PostTripes_user!=None and len(PostTripes_user)!=0:
+                for tripe in PostTripes_user:
+                    final_result_tripe.append(tripe)
+            # PostTripes_no_user = dsfn.PostProcessSPO(raw_sentence, allTripes_no_user, all_entity)
+            # if PostTripes_no_user != None and len(PostTripes_no_user) != 0:
+            #     for tripe in PostTripes_no_user:
+            #         final_result_tripe.append(tripe)
+                # print(sentenceConstraint1)
+                # print(PostTripes)
+            # print("最终结果")
+            if len(final_result_tripe) != 0:
+                print(sentenceConstraint1)
+                # print("----------------------------------------------------")
+                # print(allTripes_user)
+                # print(allTripes_no_user)
+
+
+                # result = set([tuple(t) for t in final_result_tripe])
+
+
+                # if len(result) == 3:
+                # result = removeTheSame2(result)
+                for result in final_result_tripe:
+                    allTripesForGraph.append(result)
+                # outputAsGraph(result)
+                # print(result.shape)
+                print(final_result_tripe)
+                # print(len(str(result)))
+                # count += len(str(result))
+    # print(count)
+    print(allTripesForGraph)
+    outputDict = dict()
+    outputDict['result'] = allTripesForGraph
+
+
+
+    now = str(datetime.datetime.now().year) + "" + str(datetime.datetime.now().month) \
+          + str(datetime.datetime.now().day) + str(datetime.datetime.now().hour) + str(
+        datetime.datetime.now().minute) + str(datetime.datetime.now().second) \
+          + str(datetime.datetime.now().microsecond)
+    # with open('outputTripes\\不加任何修饰-故宫-为-9.5' + now+".json", 'w',
+    #           encoding='utf-8') as json_file:
+    #     json_file.write(json.dumps(outputDict, ensure_ascii=False))
+    # outputAsGraphForList(allTripesForGraph)
+    # outputAsGraphForList(allTripesForGraph)
+    # print(mapEntity(allTripesForGraph,all_entity))
+    # outputAsGraphForSet(mapEntity(allTripesForGraph,all_entity))
+    # print(len(mapEntity(allTripesForGraph,all_entity)))
+    dsfn.close()
