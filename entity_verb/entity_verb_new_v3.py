@@ -199,7 +199,7 @@ if __name__ == "__main__":
         # split_result = splitWord(keySentence, thu1)  # 使用thulac进行分词
         Entity_in_sentence = entity_verb_new.mapEntity(sentence_list, all_entity,thu1,nlp,segmentor,postagger)
         print(Entity_in_sentence)
-        with open('entity_verb_result\\ltp-ltp去除停用词\\' + file_name[:-3]+"json", 'w',
+        with open('entity_verb_result\\实体+额外名词\\' + file_name[:-3]+"json", 'w',
                   encoding='utf-8') as json_file:
             i = -1
             for line in Entity_in_sentence:

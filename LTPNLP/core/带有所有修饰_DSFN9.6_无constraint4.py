@@ -1178,7 +1178,7 @@ class DSFN:
         words = self.postag(lemmas)
         words_netag = self.netag(words)
         sentence = self.parse(words_netag)
-        # print(sentence.to_string())
+        print(sentence.to_string())
         for itemWord in sentence.words:
             #来找到一个动词，这个动词要么是一句话的HED，要么与一句话的HED是COO的依存关系
             if (itemWord.head_word == None and itemWord.postag == "v" ) or (itemWord.postag == "v" and
@@ -1577,11 +1577,12 @@ if __name__ == '__main__':
         #                  "牙买加运动员博尔特击败了美国选手加特林，在里约奥运会再次夺得金牌"]
         # all_entity = ['德国','高克','上海','同济大学',"乔丹","运动员","纽约","托马斯","肯德基","牙买加","博尔特","美国","加特林","里约奥运会",]
 
-        # sentence_list = ["燔柴炉是举行冬至祭天大典望燎仪时焚烧祭祀正位（皇天上帝）供奉物用的",
-        #                  # "中国国家主席习近平访问埃及"
-        #                  ]
+        sentence_list = [ "从孙中山1904年在蟮香山成立兴中会，1905年成立同盟会（国民党前身）"
+            # "李晨，黄渤，范冰冰在上海参加国际电影节",
+                         # "中国国家主席习近平访问埃及"
+                         ]
         # # # #
-        # all_entity = ["中国","习近平","小王","埃及"]
+        all_entity = ["孙中山","蟮香山","兴中会","同盟会","国民党"]
 
         count = 0
         allTripesForGraph = []
@@ -1686,9 +1687,9 @@ if __name__ == '__main__':
           + str(datetime.datetime.now().day) + str(datetime.datetime.now().hour) + str(
         datetime.datetime.now().minute) + str(datetime.datetime.now().second) \
           + str(datetime.datetime.now().microsecond)
-    with open('outputTripes\\带所有修饰-all-9.6-constraints4-inverse-SPOVerbDict-' + now+".json", 'w',
-              encoding='utf-8') as json_file:
-        json_file.write(json.dumps(outputDict, ensure_ascii=False))
+    # with open('outputTripes\\带所有修饰-all-9.6-constraints4-inverse-SPOVerbDict-' + now+".json", 'w',
+    #           encoding='utf-8') as json_file:
+    #     json_file.write(json.dumps(outputDict, ensure_ascii=False))
     # outputAsGraphForList(allTripesForGraph)
     # outputAsGraphForList(allTripesForGraph)
     # print(mapEntity(allTripesForGraph,all_entity))

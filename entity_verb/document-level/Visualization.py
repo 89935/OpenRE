@@ -1,28 +1,8 @@
-from graphviz import Digraph
-import datetime
-from graphviz import render
+
 import json
-def outputAsGraphForSet(resultSet):
-    print("123")
-    fontname = "FangSong"
-    g = Digraph("Visualization")
-    for result in resultSet:
-        print(result)
-        g.node(name=result[0], fontname="FangSong")
-        g.node(name=result[2], fontname="FangSong")
-        g.edge(result[0], result[2], fontname="FangSong", label=result[1])
-        print(result)
-    """
-    neato 较差
-    circo
-    twopi
-    fdp 
-    """
-    g.engine = 'circo'
-    g.render('test-output/Visualization5.gv',view=True)
 
 def readJsonToTriple(fileName):
-    f = open('document-level-output\\' + fileName, 'r', encoding='utf-8')
+    f = open('document-level-output\\' + fileName, 'r', encoding='utf-8')  # 2、修改为各个实体对类型的候选三元组文件所在的位置
     file = f.read()
     f.close()
     content = json.loads(file)  # 转化为json格式
@@ -47,23 +27,16 @@ def readJsonToTriple(fileName):
     return tripleList
 
 if __name__ == '__main__':
-    # tripleList = readJsonToTriple("windowWord1_longestEntity_(loc-loc)+(loc-per)+(per-loc)+(per-per)+\\filtered-loc_loc_triples8.json")
     fileList = ['loc_loc_triples9.json','loc_per_triples9.json','loc_org_triples9.json',
                 'per_loc_triples9.json','per_per_triples9.json','per_org_triples9.json',
-                'org_loc_triples9.json','org_per_triples9.json','org_org_triples9.json']
-    # fileList = ['windowWord1_longestEntity_60_30_(loc-loc)+(loc-per)+(per-loc)+(per-per)+\\filtered-loc_loc_triples8.json',
-    #             'windowWord1_longestEntity_60_30_(loc-loc)+(loc-per)+(per-loc)+(per-per)+\\filtered-loc_per_triples8.json',
-    #             'windowWord1_longestEntity_60_30_(loc-loc)+(loc-per)+(per-loc)+(per-per)+\\filtered-per_loc_triples8.json',
-    #             'windowWord1_longestEntity_60_30_(loc-loc)+(loc-per)+(per-loc)+(per-per)+\\filtered-per_per_triples8.json',
-    #             ]
+                'org_loc_triples9.json','org_per_triples9.json','org_org_triples9.json']  # 1、修改为step0_classifiedEntity_ForbeforeAndAfter所生成的各个实体对类型的候选三元组
+
     for fileName in fileList:
         tripleList = readJsonToTriple(fileName)
-        file = r'C:\Users\thinkpad\Desktop\文档级进展\\' +fileName
+        file = r'C:\Users\thinkpad\Desktop\文档级进展\\' +fileName  # 3、输出文件的位置以及文件名
         with open(file, 'a+',encoding='utf-8') as f:
             for triple in tripleList:
                 f.write(triple[0]+','+triple[1]+','+triple[2] + '\n')  # 加\n换行显示
         print(tripleList)
         for triple in tripleList:
             print(triple[0]+','+triple[1]+','+triple[2])
-    # tripleList = [['1','2','3']]
-    # outputAsGraphForSet(tripleList)

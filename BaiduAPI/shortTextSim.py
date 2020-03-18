@@ -54,4 +54,15 @@ client = AipNlp(APP_ID, API_KEY, SECRET_KEY)
 # client.simnet(text1, text2);
 # print(client.simnet(text1, text2).get("score"));
 """ 调用词义相似度 """
-print(client.simnet("奥巴马", "奥巴马先生"))
+# print(client.simnet("奥巴马", "奥巴马先生"))
+
+""" 调用词法分析 """
+
+text = "该器是同治时期御窑厂为慈禧太后祝寿所订烧的瓷器之一"
+print(client.lexer(text))
+
+# text = "北京故宫是第一批全国重点文物保护单位、第一批国家5A级旅游景区、全国未成年人思想道德建设工作先进单位"
+# print(client.lexer(text))
+#
+# text = "乾隆四十一年（1776年），和珅开始在这东依前海，背靠后海的位置修建他的豪华宅第，时称“和第”"
+# print(client.lexer(text))

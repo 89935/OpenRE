@@ -1,11 +1,11 @@
 import json
 import csv
 import thulac
-f = open("../../entity_verb_result/name_place_organization_classification_人工修正版.json", "r", encoding="utf-8")
+f = open("../../entity_verb_result/name_place_organization_classification_人工修正版.json", "r", encoding="utf-8")  # 1、修改为分类结果文件，即name_place_organization_classification的输出文件
 file = f.read()
-person_entity = json.loads(file)['人--412']
-location_entity = json.loads(file)['地点--500']
-organization_entity = json.loads(file)['组织机构--71']
+person_entity = json.loads(file)['人--412']  # 2、修改为json文件中“人物”实体列表所对应的key
+location_entity = json.loads(file)['地点--500']  # 3、修改为json文件中“地点”实体列表所对应的key
+organization_entity = json.loads(file)['组织机构--71']  # 4、修改为json文件中组织机构实体列表所对应的key
 f.close()
 print(person_entity)
 print(len(person_entity))
@@ -19,7 +19,7 @@ entityCategoryDict['location'] = location_entity
 entityCategoryDict['organization'] = organization_entity
 
 thu1 = thulac.thulac()
-sFileName='..//..//entity_verb_result//intersection_only_verb_windowWord_1_v6_longestEntity_one_sentence_beforeAndAfter.csv'
+sFileName='..//..//entity_verb_result//intersection_only_verb_windowWord_1_v6_longestEntity_one_sentence_beforeAndAfter.csv'  # 5、伴随词的交集文件，修改为entityContextUnion_only_verb_beforeAndAfter.py输出的csv文件
 
 
 def thulacFilter(word):
@@ -119,36 +119,36 @@ def generateCategoryTriples(category,num):
 
 if __name__ == "__main__":
     allRel = []
-    num = 0  # or 3 限制了关系在上下文所出现的频数的要求，设置为0时，则不限制
+    num = 0  # 6、限制了关系在上下文所出现次数的要求，设置为0时，则不限制，若=3，则限制该关系词至少在该实体的上下文中出现3次
     loc_loc_triples,loc_per_triples,loc_org_triples = generateCategoryTriples("location",num)
     per_loc_triples,per_per_triples,per_org_triples = generateCategoryTriples("person",num)
     org_loc_triples,org_per_triples,org_org_triples = generateCategoryTriples("organization",num)
-    tripleName = '8'
-    with open('../document-level-output/loc_loc_triples'+tripleName+'.json', 'w',
+    tripleName = '8'  # 7、只是为了给输出的文件赋予一个唯一的名字
+    with open('../document-level-output/loc_loc_triples'+tripleName+'.json', 'w',  # 9、修改loc_loc三元组的存储路径和文件名
               encoding='utf-8') as json_file:
         json_file.write(json.dumps(loc_loc_triples, ensure_ascii=False))
-    with open('../document-level-output/loc_per_triples'+tripleName+'.json', 'w',
+    with open('../document-level-output/loc_per_triples'+tripleName+'.json', 'w',  # 9、修改loc_per三元组的存储路径和文件名
               encoding='utf-8') as json_file:
         json_file.write(json.dumps(loc_per_triples, ensure_ascii=False))
-    with open('../document-level-output/loc_org_triples'+tripleName+'.json', 'w',
+    with open('../document-level-output/loc_org_triples'+tripleName+'.json', 'w',  # 10、修改loc_org三元组的存储路径和文件名
               encoding='utf-8') as json_file:
         json_file.write(json.dumps(loc_org_triples, ensure_ascii=False))
-    with open('../document-level-output/per_loc_triples'+tripleName+'.json', 'w',
+    with open('../document-level-output/per_loc_triples'+tripleName+'.json', 'w',  # 11、修改per_loc三元组的存储路径和文件名
               encoding='utf-8') as json_file:
         json_file.write(json.dumps(per_loc_triples, ensure_ascii=False))
-    with open('../document-level-output/per_per_triples'+tripleName+'.json', 'w',
+    with open('../document-level-output/per_per_triples'+tripleName+'.json', 'w',  # 12、修改per_per三元组的存储路径和文件名
               encoding='utf-8') as json_file:
         json_file.write(json.dumps(per_per_triples, ensure_ascii=False))
-    with open('../document-level-output/per_org_triples'+tripleName+'.json', 'w',
+    with open('../document-level-output/per_org_triples'+tripleName+'.json', 'w',  # 13、修改per_org三元组的存储路径和文件名
               encoding='utf-8') as json_file:
         json_file.write(json.dumps(per_org_triples, ensure_ascii=False))
-    with open('../document-level-output/org_loc_triples'+tripleName+'.json', 'w',
+    with open('../document-level-output/org_loc_triples'+tripleName+'.json', 'w',  # 14、修改org_loc三元组的存储路径和文件名
               encoding='utf-8') as json_file:
         json_file.write(json.dumps(org_loc_triples, ensure_ascii=False))
-    with open('../document-level-output/org_per_triples'+tripleName+'.json', 'w',
+    with open('../document-level-output/org_per_triples'+tripleName+'.json', 'w',  # 15、修改org_per三元组的存储路径和文件名
               encoding='utf-8') as json_file:
         json_file.write(json.dumps(org_per_triples, ensure_ascii=False))
-    with open('../document-level-output/org_org_triples'+tripleName+'.json', 'w',
+    with open('../document-level-output/org_org_triples'+tripleName+'.json', 'w',  # 16、修改org_org三元组的存储路径和文件名
               encoding='utf-8') as json_file:
         json_file.write(json.dumps(org_org_triples, ensure_ascii=False))
         # print(location_triples)

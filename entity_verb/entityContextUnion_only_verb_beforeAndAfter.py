@@ -4,7 +4,7 @@ import os
 
 
 
-f = open('entity_verb_result\\' + "context_word_freq_dict_v6_longestEntity__one_sentence_beforeAndAfter2.json"
+f = open('entity_verb_result\\' + "context_only_word_freq_dict03-16修改了循环方法.json"  # 1、读取实体的伴随动词文件，即contextOfWord_v4.py的输出文件
              , 'r', encoding='utf-8')
 file = f.read()
 json_file = json.loads(file)
@@ -19,7 +19,7 @@ all_entity_intersection.append(row1)
 remain = len(all_entity)
 for A in all_entity:
     remain = remain-1
-    print(remain)
+    print("还剩"+str(remain))
     list_A = []
     list_A.append(A)
     entityA = json_file[A]
@@ -67,13 +67,9 @@ for A in all_entity:
         list_A.append(intersection_dict)
         # print(list_A)
     all_entity_intersection.append(list_A)
-with open('entity_verb_result\\intersection_only_verb_windowWord_1_v6_longestEntity_one_sentence_beforeAndAfter.csv', 'w', newline='',encoding="utf-8") as t_file:
+with open('entity_verb_result\\intersection_only_verb03-16修改了循环方法.csv',  # 2、更改输出的文件名
+          'w', newline='',encoding="utf-8") as t_file:
     csv_writer = csv.writer(t_file)
     for l in all_entity_intersection:
         # print(l)
         csv_writer.writerow(l)
-# with open('entity_verb_result\\intersection_only_verb4.csv', 'w', newline='',encoding="utf-8") as t_file:
-#     csv_writer = csv.writer(t_file)
-#     for l in all_entity_intersection:
-#         # print(l)
-#         csv_writer.writerow(l)

@@ -3,7 +3,7 @@ fileList = ['5A_北京故宫博物院.json', '5A_天坛公园.json','5A_恭王�
 json_file = []
 for file_name in fileList:
     print(file_name)
-    f = open('entity_verb_result\\ltp-ltp去除停用词\\' + file_name, 'r', encoding='utf-8')
+    f = open('entity_verb_result\\实体+额外名词+jieba分词+时间名词\\' + file_name, 'r', encoding='utf-8')
     for line in f.readlines():
         json_line = json.loads(line)
         for key in json_line:
@@ -72,7 +72,7 @@ for EVList in json_file:
     print(EVList)
     newEVList.append(EVList)
 
-with open('entity_verb_result\\ltp-ltp去除停用词\\all_只包含最长实体2.json', 'w',
+with open('entity_verb_result\\实体+额外名词+jieba分词+时间名词\\all_只包含最长实体.json', 'w',
           encoding='utf-8') as json_file:
     i = -1
     for line in newEVList:

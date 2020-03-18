@@ -222,7 +222,7 @@ if __name__ == "__main__":
     all_entity = json.loads(file)['all_entity']
     f.close()
 
-    all_entity = ["中和殿"]
+    all_entity = ["大角楼","什刹海"]
     word_freq_dict = dict()
     for entity in all_entity:
         EVList = EVoccurrence(json_file, entity)  # 获取该实体的EVList
