@@ -2,14 +2,16 @@ import json
 import math
 
 
-file_path = "sentence_level2_result\\V0.1\\"
+file_path = "sentence_level2_result\\V0.4\\"
 file_name_dict = dict()
 file_name_dict['loc-loc'] = "loc_loc_triples.json"
 file_name_dict['loc-per'] = "loc_per_triples.json"
-file_name_dict['per-loc'] = "per_loc_triples.json"
 file_name_dict['loc-org'] = "loc_org_triples.json"
+file_name_dict['per-loc'] = "per_loc_triples.json"
 file_name_dict['per-per'] = "per_per_triples.json"
 file_name_dict['per-org'] = "per_org_triples.json"
+file_name_dict['org-loc'] = "org_loc_triples.json"
+file_name_dict['org-per'] = "org_per_triples.json"
 file_name_dict['org-org'] = "org_org_triples.json"
 def getEntropy(type_list):
     totalNum = getTotalNum(type_list)
@@ -246,8 +248,14 @@ def sortedByIG(types):
     return IGDict
 
 if __name__ == "__main__":
-    type_list = ['loc-loc','loc-per']
-    sortedByIG(type_list)
+    type_list = ['loc-loc','loc-per','loc-org','per-loc','per-per','per-org','org-loc','org-per','org-org']
+    # sortedByIG(type_list)
+
+    typeNumDict = getNumOfType(type_list)
+    print(typeNumDict)
+    allCandidateRelSet = getAllCandidateRel(type_list)
+    print(allCandidateRelSet)
+    print(len(allCandidateRelSet))
     #
     # IGDict = sortedByIG(type_list)
     # print(IGDict)

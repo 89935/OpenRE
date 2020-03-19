@@ -38,7 +38,7 @@ if __name__ == "__main__":
         # print(len(sentence_list))
         # entity1 = "乾清宫"
         # entity2 = "位于"
-        entity1 = "中和殿"
+        entity1 = "位于"
         entity2 = "位于"
         resultList = occurrence(sentence_list, entity1, entity2)
         for result in resultList:

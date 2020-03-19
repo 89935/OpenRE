@@ -3,7 +3,7 @@ import json
 import math
 import step1_getIG_ForOneSentence
 
-file_path = "sentence_level2_result\\V0.1\\"
+file_path = "sentence_level2_result\\V0.4\\"
 def getScore(types,rel):
     """
     score(rel,t):使用实体对类型打分公式来评价一个词语是否能描述特定实体对类型的关系

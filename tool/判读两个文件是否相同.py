@@ -40,7 +40,7 @@ def compare(filename1, filename2):
                         index += 1
                         if str1[i] != str2[i]:
                             print("两个文件第一次出现不同在：{}行{}列".format(line, index))
-                            print(str1[i - 20:i + 4] + "   " + str2[i - 20:i + 4])
+                            print(str1[i - 100:i + 100] + "   " + str2[i - 100:i + 100])
                             return 0
                         else:
                             continue
@@ -61,3 +61,9 @@ if __name__ == '__main__':
         f1.close_file()
         exit(0)
     compare(f1, f2)
+
+    # D:\PyCharmProjects\entity_verb\entity_verb_result\context_only_word_freq_dict03-16修改了循环方法.json
+    # D:\PyCharmProjects\entity_verb\entity_verb_result\context_word_freq_dict_v4_beforeAndAfter.json
+    # D:\PyCharmProjects\entity_verb\entity_verb_result
+    # D:\PyCharmProjects\entity_verb\entity_verb_result\intersection_only_verb03-16修改了循环方法.csv
+    # D:\PyCharmProjects\entity_verb\entity_verb_result\intersection_only_verb_windowWord_1_beforeAndAfter.csv

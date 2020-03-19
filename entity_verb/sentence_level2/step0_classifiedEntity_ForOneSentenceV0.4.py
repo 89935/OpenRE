@@ -7,26 +7,7 @@ person_entity = json.loads(file)['人--412']  # 2、修改为json文件中“人
 location_entity = json.loads(file)['地点--500']  # 3、修改为json文件中“地点”实体列表所对应的key
 organization_entity = json.loads(file)['组织机构--71']  # 4、修改为json文件中组织机构实体列表所对应的key
 
-"""
-加入补充实体的分类
-"""
-f = open("sentence_level2_result\\额外补充长度大于1实体分类结果.json", "r", encoding="utf-8")
-file = f.read()
-additional_person_entity = json.loads(file)['人物']
-additional_location_entity = json.loads(file)['地点']
-additional_organization_entity = json.loads(file)['组织机构']
 
-for i in additional_person_entity:
-    person_entity.append(i)
-
-for i in additional_location_entity:
-    location_entity.append(i)
-
-for i in additional_organization_entity:
-    organization_entity.append(i)
-
-
-f.close()
 print(person_entity)
 print(len(person_entity))
 print(location_entity)
@@ -73,23 +54,23 @@ def generateCategoryTriples(allTriplesList):
             if subject in location_entity:
                 if object in location_entity:
                     loc_loc_triples.append(tripe)
-                if object in person_entity:
+                elif object in person_entity:
                     loc_per_triples.append(tripe)
-                if object in organization_entity:
+                elif object in organization_entity:
                     loc_org_triples.append(tripe)
             if subject in person_entity:
                 if object in location_entity:
                     per_loc_triples.append(tripe)
-                if object in person_entity:
+                elif object in person_entity:
                     per_per_triples.append(tripe)
-                if object in organization_entity:
+                elif object in organization_entity:
                     per_org_triples.append(tripe)
             if subject in organization_entity:
                 if object in location_entity:
                     org_loc_triples.append(tripe)
-                if object in person_entity:
+                elif object in person_entity:
                     org_per_triples.append(tripe)
-                if object in organization_entity:
+                elif object in organization_entity:
                     org_org_triples.append(tripe)
 
     return loc_loc_triples, loc_per_triples, loc_org_triples ,per_loc_triples,\
@@ -98,7 +79,7 @@ def generateCategoryTriples(allTriplesList):
 
 
 if __name__ == "__main__":
-    f = open('sentence_level2_result\\V0.3\\' + 'allTripes.json', 'r', encoding='utf-8')
+    f = open('sentence_level2_result\\V0.4\\' + 'allTripes.json', 'r', encoding='utf-8')
     allTriplesList = []
 
     for line in f.readlines():
@@ -110,28 +91,14 @@ if __name__ == "__main__":
     print(len(allTriplesList))
     loc_loc_triples,loc_per_triples,loc_org_triples ,per_loc_triples,per_per_triples,\
     per_org_triples,org_loc_triples,org_per_triples,org_org_triples = generateCategoryTriples(allTriplesList)
-
-    print(loc_loc_triples)
     print(len(loc_loc_triples))
-    print(loc_per_triples)
     print(len(loc_per_triples))
-    print(loc_org_triples)
     print(len(loc_org_triples))
-    print(per_loc_triples)
     print(len(per_loc_triples))
-    print(per_per_triples)
     print(len(per_per_triples))
-
-    print(per_org_triples)
     print(len(per_org_triples))
-
-    print(org_loc_triples)
     print(len(org_loc_triples))
-
-    print(org_per_triples)
     print(len(org_per_triples))
-
-    print(org_org_triples)
     print(len(org_org_triples))
     # allRel = []
     #
@@ -142,34 +109,34 @@ if __name__ == "__main__":
 
 
     tripleName = ''  # 7、只是为了给输出的文件赋予一个唯一的名字
-    # fileLocation = 'sentence_level2_result\\V0.3\\'
-    # with open(fileLocation+'loc_loc_triples'+tripleName+'.json', 'w',  # 9、修改loc_loc三元组的存储路径和文件名
-    #           encoding='utf-8') as json_file:
-    #     json_file.write(json.dumps(loc_loc_triples, ensure_ascii=False))
-    # with open(fileLocation+'loc_per_triples'+tripleName+'.json', 'w',  # 9、修改loc_per三元组的存储路径和文件名
-    #           encoding='utf-8') as json_file:
-    #     json_file.write(json.dumps(loc_per_triples, ensure_ascii=False))
-    # with open(fileLocation+'loc_org_triples'+tripleName+'.json', 'w',  # 10、修改loc_org三元组的存储路径和文件名
-    #           encoding='utf-8') as json_file:
-    #     json_file.write(json.dumps(loc_org_triples, ensure_ascii=False))
-    # with open(fileLocation+'per_loc_triples'+tripleName+'.json', 'w',  # 11、修改per_loc三元组的存储路径和文件名
-    #           encoding='utf-8') as json_file:
-    #     json_file.write(json.dumps(per_loc_triples, ensure_ascii=False))
-    # with open(fileLocation+'per_per_triples'+tripleName+'.json', 'w',  # 12、修改per_per三元组的存储路径和文件名
-    #           encoding='utf-8') as json_file:
-    #     json_file.write(json.dumps(per_per_triples, ensure_ascii=False))
-    # with open(fileLocation+'per_org_triples'+tripleName+'.json', 'w',  # 13、修改per_org三元组的存储路径和文件名
-    #           encoding='utf-8') as json_file:
-    #     json_file.write(json.dumps(per_org_triples, ensure_ascii=False))
-    # with open(fileLocation+'org_loc_triples'+tripleName+'.json', 'w',  # 14、修改org_loc三元组的存储路径和文件名
-    #           encoding='utf-8') as json_file:
-    #     json_file.write(json.dumps(org_loc_triples, ensure_ascii=False))
-    # with open(fileLocation+'org_per_triples'+tripleName+'.json', 'w',  # 15、修改org_per三元组的存储路径和文件名
-    #           encoding='utf-8') as json_file:
-    #     json_file.write(json.dumps(org_per_triples, ensure_ascii=False))
-    # with open(fileLocation+'org_org_triples'+tripleName+'.json', 'w',  # 16、修改org_org三元组的存储路径和文件名
-    #           encoding='utf-8') as json_file:
-    #     json_file.write(json.dumps(org_org_triples, ensure_ascii=False))
+    fileLocation = 'sentence_level2_result\\V0.3\\'
+    with open(fileLocation+'loc_loc_triples'+tripleName+'.json', 'w',  # 9、修改loc_loc三元组的存储路径和文件名
+              encoding='utf-8') as json_file:
+        json_file.write(json.dumps(loc_loc_triples, ensure_ascii=False))
+    with open(fileLocation+'loc_per_triples'+tripleName+'.json', 'w',  # 9、修改loc_per三元组的存储路径和文件名
+              encoding='utf-8') as json_file:
+        json_file.write(json.dumps(loc_per_triples, ensure_ascii=False))
+    with open(fileLocation+'loc_org_triples'+tripleName+'.json', 'w',  # 10、修改loc_org三元组的存储路径和文件名
+              encoding='utf-8') as json_file:
+        json_file.write(json.dumps(loc_org_triples, ensure_ascii=False))
+    with open(fileLocation+'per_loc_triples'+tripleName+'.json', 'w',  # 11、修改per_loc三元组的存储路径和文件名
+              encoding='utf-8') as json_file:
+        json_file.write(json.dumps(per_loc_triples, ensure_ascii=False))
+    with open(fileLocation+'per_per_triples'+tripleName+'.json', 'w',  # 12、修改per_per三元组的存储路径和文件名
+              encoding='utf-8') as json_file:
+        json_file.write(json.dumps(per_per_triples, ensure_ascii=False))
+    with open(fileLocation+'per_org_triples'+tripleName+'.json', 'w',  # 13、修改per_org三元组的存储路径和文件名
+              encoding='utf-8') as json_file:
+        json_file.write(json.dumps(per_org_triples, ensure_ascii=False))
+    with open(fileLocation+'org_loc_triples'+tripleName+'.json', 'w',  # 14、修改org_loc三元组的存储路径和文件名
+              encoding='utf-8') as json_file:
+        json_file.write(json.dumps(org_loc_triples, ensure_ascii=False))
+    with open(fileLocation+'org_per_triples'+tripleName+'.json', 'w',  # 15、修改org_per三元组的存储路径和文件名
+              encoding='utf-8') as json_file:
+        json_file.write(json.dumps(org_per_triples, ensure_ascii=False))
+    with open(fileLocation+'org_org_triples'+tripleName+'.json', 'w',  # 16、修改org_org三元组的存储路径和文件名
+              encoding='utf-8') as json_file:
+        json_file.write(json.dumps(org_org_triples, ensure_ascii=False))
 
 
         # print(location_triples)

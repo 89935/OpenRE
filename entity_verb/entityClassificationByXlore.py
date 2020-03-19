@@ -66,10 +66,20 @@ def classify(allEntity):
     return entity_classification
 
 if __name__ == "__main__":
-    all_entity = readAllEntity('entity_verb_result\\' + "all_entity.json")  # 1、替换您的所有实体列表
-    all_entity = ['为岛']
+
+    all_entity = readAllEntity('entity_verb_result\\' + "jieba+LTP额外补充的命名实体.json")  # 1、替换您的所有实体列表
+    all_entity = ['厉先生']
+    # f = open('entity_verb_result\\' + "jieba+LTP额外补充的命名实体.json", 'r', encoding='utf-8')
+    # file = f.read()
+    # f.close()
+    # additional_entity_postag = json.loads(file)
+    # entityList = []
+    # for entity_postag in additional_entity_postag:
+    #     entity = entity_postag.split('---')[0]
+    #     entityList.append(entity)
+    # print(entityList)
     entity_classification = classify(all_entity)
     print(entity_classification)
-    # with open('entity_verb_result\\' + "set_all_entity_classification.json", 'w',  # 4、替换您输出的文件名
+    # with open('entity_verb_result\\' + "额外补充实体的Xlore分类结果.json", 'w',  # 4、替换您输出的文件名
     #           encoding='utf-8') as json_file:
     #     json_file.write(json.dumps(entity_classification,ensure_ascii=False))

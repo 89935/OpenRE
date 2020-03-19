@@ -59,7 +59,7 @@ if __name__ == '__main__':
     # # print(len(all_word))
     # thu1 = thulac.thulac()
     # print("ltp的分词结果:")
-    words = segmentor.segment("1912年，小恭王溥伟因急需复辟活动经费，将恭王府除书画之外的昔日珍藏全部卖给了日本古董商人山中定次郎")
+    words = segmentor.segment("圜丘坛之北是皇穹宇")
     resultWords = []
     for word in words:
         resultWords.append(word)

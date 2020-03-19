@@ -1,6 +1,6 @@
 import step3_filterCandidateRelations_ForOneSentence
 import json
-file_path = "sentence_level2_result\\V0.1\\"
+file_path = "sentence_level2_result\\V0.4\\"
 file_name_dict = dict()
 file_name_dict['loc-loc'] = "loc_loc_triples.json"
 file_name_dict['loc-per'] = "loc_per_triples.json"

@@ -1,6 +1,6 @@
 import step1_getIG_ForOneSentence,step2_getScore_ForOneSentence
 import json
-file_path = "sentence_level2_result\\V0.1\\"
+file_path = "sentence_level2_result\\V0.4\\"
 def filterCandidateRel(type_list,N,K):
     """
     根据type_list，取IGCandidateRelationWords的前N个元素作为 IGList
